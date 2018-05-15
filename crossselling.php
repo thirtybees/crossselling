@@ -43,7 +43,7 @@ class CrossSelling extends Module
         $this->bootstrap = true;
         parent::__construct();
 
-        $this->displayName = $this->l('Cross-selling');
+        $this->displayName = $this->l('Block Cross Selling');
         $this->description = $this->l('Adds a "Customers who bought this product also bought..." section to every product page.');
         $this->ps_versions_compliancy = array('min' => '1.5.6.1', 'max' => '1.6.99.99');
     }
