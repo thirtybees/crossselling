@@ -44,6 +44,7 @@ class CrossSelling extends Module
 
         $this->displayName = $this->l('Block Cross Selling');
         $this->description = $this->l('Adds a "Customers who bought this product also bought..." section to every product page.');
+        $this->tb_versions_compliancy = '> 1.0.0';
         $this->ps_versions_compliancy = array('min' => '1.5.6.1', 'max' => '1.6.99.99');
     }
 
