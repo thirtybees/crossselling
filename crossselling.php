@@ -174,6 +174,7 @@ class CrossSelling extends Module
                 AND od.product_id NOT IN ('.$list_product_ids.')
                 AND i.cover = 1
                 AND product_shop.active = 1
+                AND p.visibility IN ("both", "catalog") 
                 '.(Group::isFeatureActive() ? $sql_groups_where : '').'
                 ORDER BY RAND()
                 LIMIT '.(int)Configuration::get('CROSSSELLING_NBR'));
