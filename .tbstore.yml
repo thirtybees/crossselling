@@ -3,19 +3,19 @@ compatible_versions: 1.0.0+
 author: thirty bees
 category: front office
 tags:
-- cross selling
-- up sell
-- marketing
-- crossselling
+  - cross selling
+  - up sell
+  - marketing
+  - crossselling
 description_short: The cross selling module allows you to add a block to cross sell products.
 description: description.md
 images:
-- image-1.png
+  - image-1.png
 gdpr_compliant: false
 license: AFL
 php_version:
-- 5.5
-- 5.6
-- 7.0
-- 7.1
-- 7.2
+  - 5.5
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
