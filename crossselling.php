@@ -211,35 +211,45 @@ class CrossSelling extends Module
 
     /**
      * Returns module content
+     *
+     * @param $params
+     * @return string
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
      */
-    public function hookshoppingCart($params)
+    public function hookShoppingCart($params)
     {
         if (!$params['products']) {
-            return;
+            return null;
         }
 
-        $products_id = array();
+        $products = [];
         foreach ($params['products'] as $product) {
-            $products_id[] = (int)$product['id_product'];
+            $productId = (int)$product['id_product'];
+            if ($productId) {
+                $products[] = $productId;
+            }
         }
+        $products = array_unique($products, SORT_NUMERIC);
 
-        $cache_id = 'crossselling|shoppingcart|'.implode('|', $products_id);
+        $cacheId = 'crossselling|shoppingcart|'.implode('|', $products);
 
-        if (!$this->isCached('crossselling.tpl', $this->getCacheId($cache_id))) {
-            $final_products_list = $this->getOrderProducts($products_id);
+        if (!$this->isCached('crossselling.tpl', $this->getCacheId($cacheId))) {
+            $orderProducts = $this->getOrderProducts($products);
 
-            if (count($final_products_list) > 0) {
+            if (count($orderProducts) > 0) {
                 $this->smarty->assign(
                     array(
-                        'orderProducts' => $final_products_list,
-                        'middlePosition_crossselling' => round(count($final_products_list) / 2, 0),
+                        'orderProducts' => $orderProducts,
+                        'middlePosition_crossselling' => round(count($orderProducts) / 2, 0),
                         'crossDisplayPrice' => Configuration::get('CROSSSELLING_DISPLAY_PRICE')
                     )
                 );
             }
         }
 
-        return $this->display(__FILE__, 'crossselling.tpl', $this->getCacheId($cache_id));
+        return $this->display(__FILE__, 'crossselling.tpl', $this->getCacheId($cacheId));
     }
 
     public function hookProductTabContent($params)
