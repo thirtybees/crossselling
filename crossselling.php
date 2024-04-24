@@ -29,8 +29,14 @@ if (!defined('_TB_VERSION_')) {
 
 class CrossSelling extends Module
 {
+    /**
+     * @var string
+     */
     protected $html;
 
+    /**
+     * @throws PrestaShopException
+     */
     public function __construct()
     {
         $this->name = 'crossselling';
@@ -49,6 +55,11 @@ class CrossSelling extends Module
         $this->ps_versions_compliancy = array('min' => '1.5.6.1', 'max' => '1.6.99.99');
     }
 
+    /**
+     * @return bool
+     *
+     * @throws PrestaShopException
+     */
     public function install()
     {
         if (!parent::install() ||
@@ -66,6 +77,10 @@ class CrossSelling extends Module
         return true;
     }
 
+    /**
+     * @return bool
+     * @throws PrestaShopException
+     */
     public function uninstall()
     {
         $this->_clearCache('crossselling.tpl');
@@ -79,6 +94,11 @@ class CrossSelling extends Module
         return true;
     }
 
+    /**
+     * @return string
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
     public function getContent()
     {
         $this->html = '';
@@ -101,6 +121,9 @@ class CrossSelling extends Module
         return $this->html.$this->renderForm();
     }
 
+    /**
+     * @return void
+     */
     public function hookHeader()
     {
         if (!isset($this->context->controller->php_self) || !in_array(
@@ -127,7 +150,7 @@ class CrossSelling extends Module
      * @param array $products_id an array of product ids
      *
      * @return array
-     * @throws PrestaShopDatabaseException
+     *
      * @throws PrestaShopException
      */
     protected function getOrderProducts(array $products_id)
@@ -212,7 +235,7 @@ class CrossSelling extends Module
     /**
      * Returns module content
      *
-     * @param $params
+     * @param array $params
      * @return string
      *
      * @throws PrestaShopException
@@ -252,11 +275,27 @@ class CrossSelling extends Module
         return $this->display(__FILE__, 'crossselling.tpl', $this->getCacheId($cacheId));
     }
 
+    /**
+     * @param array $params
+     *
+     * @return string
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
     public function hookProductTabContent($params)
     {
         return $this->hookProductFooter($params);
     }
 
+    /**
+     * @param array $params
+     *
+     * @return string
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
     public function displayProductListReviews($params)
     {
         return $this->hookProductFooter($params);
@@ -264,6 +303,13 @@ class CrossSelling extends Module
 
     /**
      * Returns module content for product footer
+     *
+     * @param array $params
+     *
+     * @return string
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
      */
     public function hookProductFooter($params)
     {
@@ -286,11 +332,23 @@ class CrossSelling extends Module
         return $this->display(__FILE__, 'crossselling.tpl', $this->getCacheId($cache_id));
     }
 
+    /**
+     * @param array $params
+     *
+     * @return void
+     * @throws PrestaShopException
+     */
     public function hookActionOrderStatusPostUpdate($params)
     {
         $this->_clearCache('crossselling.tpl');
     }
 
+    /**
+     * @return string
+     *
+     * @throws PrestaShopException
+     * @throws SmartyException
+     */
     public function renderForm()
     {
         $fields_form = array(
@@ -352,6 +410,10 @@ class CrossSelling extends Module
         return $helper->generateForm(array($fields_form));
     }
 
+    /**
+     * @return array
+     * @throws PrestaShopException
+     */
     public function getConfigFieldsValues()
     {
         return array(
