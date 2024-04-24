@@ -30,11 +30,6 @@ if (!defined('_TB_VERSION_')) {
 class CrossSelling extends Module
 {
     /**
-     * @var string
-     */
-    protected $html;
-
-    /**
      * @throws PrestaShopException
      */
     public function __construct()
@@ -101,24 +96,30 @@ class CrossSelling extends Module
      */
     public function getContent()
     {
-        $this->html = '';
+        /** @var AdminController $controller */
+        $controller = $this->context->controller;
+
+        $html = '';
 
         if (Tools::isSubmit('submitCross')) {
             if (Tools::getValue('displayPrice') != 0 && Tools::getValue('CROSSSELLING_DISPLAY_PRICE') != 1) {
-                $this->html .= $this->displayError('Invalid displayPrice');
+                $html .= $this->displayError('Invalid displayPrice');
             } elseif (!($product_nbr = Tools::getValue('CROSSSELLING_NBR')) || empty($product_nbr)) {
-                $this->html .= $this->displayError('You must fill in the "Number of displayed products" field.');
+                $html .= $this->displayError('You must fill in the "Number of displayed products" field.');
             } elseif ((int)$product_nbr == 0) {
-                $this->html .= $this->displayError('Invalid number.');
+                $html .= $this->displayError('Invalid number.');
             } else {
                 Configuration::updateValue('CROSSSELLING_DISPLAY_PRICE', (int)Tools::getValue('CROSSSELLING_DISPLAY_PRICE'));
                 Configuration::updateValue('CROSSSELLING_NBR', (int)Tools::getValue('CROSSSELLING_NBR'));
                 $this->_clearCache('crossselling.tpl');
-                $this->html .= $this->displayConfirmation($this->l('Settings updated successfully'));
+                $html .= $this->displayConfirmation($this->l('Settings updated successfully'));
             }
         }
 
-        return $this->html.$this->renderForm();
+        return (
+            $html .
+            $this->renderForm($controller)
+        );
     }
 
     /**
@@ -126,19 +127,14 @@ class CrossSelling extends Module
      */
     public function hookHeader()
     {
-        if (!isset($this->context->controller->php_self) || !in_array(
-                $this->context->controller->php_self, [
-                    'product',
-                    'order',
-                    'order-opc'
-                ]
-            )
-        ) {
+        if (!isset($this->context->controller->php_self) || !in_array($this->context->controller->php_self, ['product', 'order', 'order-opc'])) {
             return;
         }
+
         if (in_array($this->context->controller->php_self, ['order']) && Tools::getValue('step')) {
             return;
         }
+
         $this->context->controller->addCSS(($this->_path).'css/crossselling.css', 'all');
         $this->context->controller->addJS(($this->_path).'js/crossselling.js');
         $this->context->controller->addJqueryPlugin(['scrollTo', 'serialScroll', 'bxslider']);
@@ -179,6 +175,9 @@ class CrossSelling extends Module
                 LEFT JOIN `'._DB_PREFIX_.'category_group` cg ON (cp.`id_category` = cg.`id_category`)';
                 $groups = FrontController::getCurrentCustomerGroups();
                 $sql_groups_where = 'AND cg.`id_group` '.(count($groups) ? 'IN ('.implode(',', $groups).')' : '='.(int)Group::getCurrent()->id);
+            } else {
+                $sql_groups_join = '';
+                $sql_groups_where = '';
             }
 
             $order_products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
@@ -196,7 +195,7 @@ class CrossSelling extends Module
                 LEFT JOIN '._DB_PREFIX_.'category_lang cl ON (cl.id_category = product_shop.id_category_default'
                     .Shop::addSqlRestrictionOnLang('cl').')
                 LEFT JOIN '._DB_PREFIX_.'image i ON (i.id_product = od.product_id)
-                '.(Group::isFeatureActive() ? $sql_groups_join : '').'
+                '.$sql_groups_join.'
                 WHERE od.id_order IN ('.$list.')
                 AND pl.id_lang = '.(int)$this->context->language->id.'
                 AND cl.id_lang = '.(int)$this->context->language->id.'
@@ -204,7 +203,7 @@ class CrossSelling extends Module
                 AND i.cover = 1
                 AND product_shop.active = 1
                 AND p.visibility IN ("both", "catalog")
-                '.(Group::isFeatureActive() ? $sql_groups_where : '').'
+                '.$sql_groups_where.'
                 ORDER BY RAND()
                 LIMIT '.(int)Configuration::get('CROSSSELLING_NBR'));
 
@@ -344,12 +343,14 @@ class CrossSelling extends Module
     }
 
     /**
+     * @param AdminController $controller
+     *
      * @return string
      *
      * @throws PrestaShopException
      * @throws SmartyException
      */
-    public function renderForm()
+    public function renderForm($controller)
     {
         $fields_form = [
             'form' => [
@@ -403,7 +404,7 @@ class CrossSelling extends Module
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->tpl_vars = [
             'fields_value' => $this->getConfigFieldsValues(),
-            'languages' => $this->context->controller->getLanguages(),
+            'languages' => $controller->getLanguages(),
             'id_language' => $this->context->language->id
         ];
 
