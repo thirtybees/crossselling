@@ -52,7 +52,7 @@ class CrossSelling extends Module
         $this->description = $this->l('Adds a "Customers who bought this product also bought..." section to every product page.');
         $this->tb_versions_compliancy = '> 1.0.0';
         $this->tb_min_version = '1.0.0';
-        $this->ps_versions_compliancy = array('min' => '1.5.6.1', 'max' => '1.6.99.99');
+        $this->ps_versions_compliancy = ['min' => '1.5.6.1', 'max' => '1.6.99.99'];
     }
 
     /**
@@ -127,21 +127,21 @@ class CrossSelling extends Module
     public function hookHeader()
     {
         if (!isset($this->context->controller->php_self) || !in_array(
-                $this->context->controller->php_self, array(
+                $this->context->controller->php_self, [
                     'product',
                     'order',
                     'order-opc'
-                )
+                ]
             )
         ) {
             return;
         }
-        if (in_array($this->context->controller->php_self, array('order')) && Tools::getValue('step')) {
+        if (in_array($this->context->controller->php_self, ['order']) && Tools::getValue('step')) {
             return;
         }
         $this->context->controller->addCSS(($this->_path).'css/crossselling.css', 'all');
         $this->context->controller->addJS(($this->_path).'js/crossselling.js');
-        $this->context->controller->addJqueryPlugin(array('scrollTo', 'serialScroll', 'bxslider'));
+        $this->context->controller->addJqueryPlugin(['scrollTo', 'serialScroll', 'bxslider']);
     }
 
     /**
@@ -161,7 +161,7 @@ class CrossSelling extends Module
         WHERE o.valid = 1 AND od.product_id IN ('.implode(',', $products_id).')';
         $orders = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($q_orders);
 
-        $final_products_list = array();
+        $final_products_list = [];
 
         if (count($orders) > 0) {
             $list = '';
@@ -263,11 +263,11 @@ class CrossSelling extends Module
 
             if (count($orderProducts) > 0) {
                 $this->smarty->assign(
-                    array(
+                    [
                         'orderProducts' => $orderProducts,
                         'middlePosition_crossselling' => round(count($orderProducts) / 2, 0),
                         'crossDisplayPrice' => Configuration::get('CROSSSELLING_DISPLAY_PRICE')
-                    )
+                    ]
                 );
             }
         }
@@ -316,15 +316,15 @@ class CrossSelling extends Module
         $cache_id = 'crossselling|productfooter|'.(int)$params['product']->id;
 
         if (!$this->isCached('crossselling.tpl', $this->getCacheId($cache_id))) {
-            $final_products_list = $this->getOrderProducts(array($params['product']->id));
+            $final_products_list = $this->getOrderProducts([$params['product']->id]);
 
             if (count($final_products_list) > 0) {
                 $this->smarty->assign(
-                    array(
+                    [
                         'orderProducts' => $final_products_list,
                         'middlePosition_crossselling' => round(count($final_products_list) / 2, 0),
                         'crossDisplayPrice' => Configuration::get('CROSSSELLING_DISPLAY_PRICE')
-                    )
+                    ]
                 );
             }
         }
@@ -351,44 +351,44 @@ class CrossSelling extends Module
      */
     public function renderForm()
     {
-        $fields_form = array(
-            'form' => array(
-                'legend' => array(
+        $fields_form = [
+            'form' => [
+                'legend' => [
                     'title' => $this->l('Settings'),
                     'icon' => 'icon-cogs'
-                ),
-                'input' => array(
-                    array(
+                ],
+                'input' => [
+                    [
                         'type' => 'switch',
                         'label' => $this->l('Display price on products'),
                         'name' => 'CROSSSELLING_DISPLAY_PRICE',
                         'desc' => $this->l('Show the price on the products in the block.'),
-                        'values' => array(
-                            array(
+                        'values' => [
+                            [
                                 'id' => 'active_on',
                                 'value' => 1,
                                 'label' => $this->l('Enabled')
-                            ),
-                            array(
+                            ],
+                            [
                                 'id' => 'active_off',
                                 'value' => 0,
                                 'label' => $this->l('Disabled')
-                            )
-                        ),
-                    ),
-                    array(
+                            ]
+                        ],
+                    ],
+                    [
                         'type' => 'text',
                         'label' => $this->l('Number of displayed products'),
                         'name' => 'CROSSSELLING_NBR',
                         'class' => 'fixed-width-xs',
                         'desc' => $this->l('Set the number of products displayed in this block.'),
-                    ),
-                ),
-                'submit' => array(
+                    ],
+                ],
+                'submit' => [
                     'title' => $this->l('Save'),
-                )
-            ),
-        );
+                ]
+            ],
+        ];
 
         $helper = new HelperForm();
         $helper->show_toolbar = false;
@@ -401,13 +401,13 @@ class CrossSelling extends Module
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.'&tab_module='.$this->tab
             .'&module_name='.$this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->tpl_vars = array(
+        $helper->tpl_vars = [
             'fields_value' => $this->getConfigFieldsValues(),
             'languages' => $this->context->controller->getLanguages(),
             'id_language' => $this->context->language->id
-        );
+        ];
 
-        return $helper->generateForm(array($fields_form));
+        return $helper->generateForm([$fields_form]);
     }
 
     /**
@@ -416,9 +416,9 @@ class CrossSelling extends Module
      */
     public function getConfigFieldsValues()
     {
-        return array(
+        return [
             'CROSSSELLING_NBR' => Tools::getValue('CROSSSELLING_NBR', Configuration::get('CROSSSELLING_NBR')),
             'CROSSSELLING_DISPLAY_PRICE' => Tools::getValue('CROSSSELLING_DISPLAY_PRICE', Configuration::get('CROSSSELLING_DISPLAY_PRICE')),
-        );
+        ];
     }
 }
