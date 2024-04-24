@@ -233,7 +233,7 @@ class CrossSelling extends Module
         }
         $products = array_unique($products, SORT_NUMERIC);
 
-        $cacheId = 'crossselling|shoppingcart|'.implode('|', $products);
+        $cacheId = 'crossselling|shoppingcart|'.md5(implode('|', $products));
 
         if (!$this->isCached('crossselling.tpl', $this->getCacheId($cacheId))) {
             $orderProducts = $this->getOrderProducts($products);
