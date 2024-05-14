@@ -49,7 +49,7 @@ class CrossSelling extends Module
     {
         $this->name = 'crossselling';
         $this->tab = 'front_office_features';
-        $this->version = '2.0.6';
+        $this->version = '2.1.0';
         $this->author = 'thirty bees';
         $this->need_instance = 0;
 
