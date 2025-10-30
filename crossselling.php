@@ -33,6 +33,7 @@ class CrossSelling extends Module
     const SETTINGS_NUMBER_OF_PRODUCTS = 'CROSSSELLING_NBR';
     const SETTINGS_DISPLAY_PRICE = 'CROSSSELLING_DISPLAY_PRICE';
     const SETTINGS_LAST_UPDATE = 'CROSSSELLING_LAST_UPDATE_TS';
+    const SETTINGS_CRON_KEY = 'CROSSSELLING_CRON_KEY';
 
     /** Entry form input fields */
     const INPUT_NUMBER_OF_PRODUCTS = 'number_of_products';
@@ -61,7 +62,9 @@ class CrossSelling extends Module
         $this->tb_versions_compliancy = '> 1.0.0';
         $this->tb_min_version = '1.0.0';
         $this->ps_versions_compliancy = ['min' => '1.5.6.1', 'max' => '1.6.99.99'];
+        $this->controllers = ['cron'];
     }
+
 
     /**
      * @return bool
@@ -245,8 +248,9 @@ class CrossSelling extends Module
         }
 
         // incremental update of related products
+        // if cron is set up correctly and runs every minute or so, this should not be executed
         $lastUpdateTs = (int)Configuration::getGlobalValue(static::SETTINGS_LAST_UPDATE);
-        if (time() > ($lastUpdateTs + static::UPDATE_PERIOD)) {
+        if (time() > ($lastUpdateTs + (5 * static::UPDATE_PERIOD))) {
             $this->updateRelatedProducts();
         }
 
@@ -418,7 +422,7 @@ class CrossSelling extends Module
      */
     public function renderForm($controller)
     {
-        $fields_form = [
+        $settingsForm = [
             'form' => [
                 'legend' => [
                     'title' => $this->l('Settings'),
@@ -457,6 +461,27 @@ class CrossSelling extends Module
             ],
         ];
 
+        $cronUrl = $this->context->link->getModuleLink($this->name, 'cron', [
+            'secure_key' => $this->getCronSecret()
+        ]);
+        $cronForm = [
+            'form' => [
+                'legend' => [
+                    'title' => $this->l('Cron Settings'),
+                    'icon' => 'icon-cogs',
+                ],
+                'input' => [
+                    [
+                        'type' => 'html',
+                        'label' => $this->l('Cron URL'),
+                        'name' => 'CRON_URL',
+                        'desc' => $this->l('Copy and paste this URL to your cron manager. Recommended frequency is every minutes.'),
+                        'html_content' => "<code style='display:block;margin-top:7px'>$cronUrl</code>",
+                    ],
+                ]
+            ],
+        ];
+
         $helper = new HelperForm();
         $helper->show_toolbar = false;
         $helper->table = $this->table;
@@ -474,7 +499,10 @@ class CrossSelling extends Module
             'id_language' => $this->context->language->id
         ];
 
-        return $helper->generateForm([$fields_form]);
+        return $helper->generateForm([
+            $settingsForm,
+            $cronForm
+        ]);
     }
 
     /**
@@ -631,4 +659,30 @@ class CrossSelling extends Module
         return $this->display(__FILE__, 'crossselling.tpl', $this->getCacheId($cacheId));
     }
 
+
+    /**
+     * @return string
+     * @throws PrestaShopException
+     */
+    public function getCronSecret()
+    {
+        $value = (string)Configuration::getGlobalValue(static::SETTINGS_CRON_KEY);
+        if (! $value) {
+            $value = (string)Tools::passwdGen(32);
+            Configuration::updateGlobalValue(static::SETTINGS_CRON_KEY, $value);
+        }
+        return $value;
+    }
+
+    /**
+     * @return void
+     * @throws PrestaShopException
+     */
+    public function processCron()
+    {
+        $lastUpdateTs = (int)Configuration::getGlobalValue(static::SETTINGS_LAST_UPDATE);
+        if (time() > ($lastUpdateTs + static::UPDATE_PERIOD)) {
+            $this->updateRelatedProducts();
+        }
+    }
 }
