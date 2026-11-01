@@ -43,6 +43,9 @@ class CrossSelling extends Module
     /** How often should we attempt to update cache table, default 5 minutes */
     const UPDATE_PERIOD = 60 * 5;
 
+    /** Max number of orders processed by a front office request when cron is not set up */
+    const FRONT_OFFICE_ORDER_LIMIT = 500;
+
     /**
      * @throws PrestaShopException
      */
@@ -193,6 +196,11 @@ class CrossSelling extends Module
                 ->where('o.valid')
                 ->where('NOT EXISTS(SELECT 1 FROM ' . _DB_PREFIX_ . 'crossselling_processed_order po WHERE po.id_order = o.id_order)')
                 ->orderBy('o.id_order');
+
+            if (! $full) {
+                $lockOrders->limit(static::FRONT_OFFICE_ORDER_LIMIT);
+            }
+
             $orders = $conn->executeS($lockOrders);
             if (!$orders) {
                 return;
@@ -251,7 +259,7 @@ class CrossSelling extends Module
         // if cron is set up correctly and runs every minute or so, this should not be executed
         $lastUpdateTs = (int)Configuration::getGlobalValue(static::SETTINGS_LAST_UPDATE);
         if (time() > ($lastUpdateTs + (5 * static::UPDATE_PERIOD))) {
-            $this->updateRelatedProducts();
+            $this->updateRelatedProducts(false);
         }
 
         $conn = Db::getInstance();
